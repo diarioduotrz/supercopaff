@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Trophy, BookOpen, Gift, LogOut, Save, Trash2, Plus, Calculator, Upload, FileImage, Loader2, CheckCircle, AlertCircle, Smartphone, Bell } from 'lucide-react';
+import { Trophy, BookOpen, Gift, LogOut, Save, Trash2, Plus, Calculator, Upload, FileImage, Loader2, CheckCircle, AlertCircle, Smartphone, Bell, Users } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { analyzeImage, ExtractedData } from '@/lib/gemini';
 import { requestNotificationPermission, sendTestNotification } from '@/lib/pwa';
 import { NotificationManager } from '@/components/NotificationManager';
@@ -37,6 +38,23 @@ export function AdminPage() {
   const [uploadResults, setUploadResults] = useState<ProcessedResult[]>([]);
   const [notificationTitle, setNotificationTitle] = useState('SUPER COPA FF');
   const [notificationMessage, setNotificationMessage] = useState('Nova atualização disponível! 🎮🏆');
+  const [visitCount, setVisitCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchVisits = async () => {
+      const { data } = await supabase
+        .from('site_stats')
+        .select('visits')
+        .eq('id', 'main')
+        .single();
+
+      if (data) {
+        setVisitCount(data.visits);
+      }
+    };
+
+    fetchVisits();
+  }, []);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -245,6 +263,23 @@ export function AdminPage() {
             <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total de Visitas
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{visitCount}</div>
+              <p className="text-xs text-muted-foreground">
+                Acessos totais ao site
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="ranking" className="space-y-4">

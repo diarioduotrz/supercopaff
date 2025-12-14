@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { supabase } from "@/lib/supabase";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -41,6 +42,22 @@ function AppRoutes() {
 const App = () => {
   useEffect(() => {
     registerServiceWorker();
+
+    // Track visit
+    const trackVisit = async () => {
+      const hasVisited = sessionStorage.getItem('visited');
+      if (!hasVisited) {
+        try {
+          const { error } = await supabase.rpc('increment_visits');
+          if (!error) {
+            sessionStorage.setItem('visited', 'true');
+          }
+        } catch (err) {
+          console.error('Error tracking visit:', err);
+        }
+      }
+    };
+    trackVisit();
   }, []);
 
   return (
